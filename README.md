@@ -11,7 +11,7 @@ To see the current facts as defined in the challenge description, please run the
 ### How to run the tests
 
 1. Make sure you are inside `python-challenge-for-intelie`
-2. `python -m unittest test`
+2. `python3 -m unittest test`
 
 
 ### Note to the person in charge of the assessment
