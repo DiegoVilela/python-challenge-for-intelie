@@ -1,6 +1,8 @@
 import unittest
 
 from models import Entity, Fact
+from utils import distinct_entities, get_entities, get_facts_by_entity, get_fresh_facts
+from data import facts, schema
 
 
 class EntityModelTest(unittest.TestCase):
@@ -92,6 +94,59 @@ class EntityModelTest(unittest.TestCase):
         self.assertIn(joao_phone2, facts)
         self.assertNotIn(joao_phone3, facts)
 
+
+class UtilsModuleTest(unittest.TestCase):
+    def test_distinct_entities(self):
+        """
+        distinct_entities should return a list of distinct entities.
+        """
+        self.assertEqual(sorted(distinct_entities(facts)), ["gabriel", "joão"])
+
+    def test_get_facts_by_entity(self):
+        """
+        get_facts_by_entity should return a list of facts for a given entity.
+        """
+        gabriel_facts = [
+            ("gabriel", "endereço", "av rio branco, 109", True),
+            ("gabriel", "telefone", "98888-1111", True),
+            ("gabriel", "telefone", "56789-1010", True),
+        ]
+        facts_list = [tuple(f) for f in get_facts_by_entity(facts, "gabriel")]
+
+        self.assertEqual(facts_list, gabriel_facts)
+
+    def test_get_entities(self):
+        """
+        get_entities should return a list of Entity objects.
+        """
+        entities = get_entities(facts, schema)
+
+        self.assertIsInstance(entities, set)
+        for entity in entities:
+            self.assertIsInstance(entity, Entity)
+            self.assertIn(entity.name, ["gabriel", "joão"])
+
+    def test_get_fresh_facts(self):
+        """
+        get_fresh_facts should return a list of facts that were not added before.
+        """
+        removed_facts = [
+            ('joão', 'endereço', 'rua alice, 10', True), # endereço is 'one-to-one'
+            ('joão', 'telefone', '234-5678', False), # added is False
+        ]
+        fresh_facts = [
+            ('gabriel', 'endereço', 'av rio branco, 109', True),
+            ('joão', 'endereço', 'rua bob, 88', True),
+            ('joão', 'telefone', '234-5678', True),
+            ('joão', 'telefone', '91234-5555', True),
+            ('gabriel', 'telefone', '98888-1111', True),
+            ('gabriel', 'telefone', '56789-1010', True),
+        ]
+        facts_list = [tuple(f) for f in get_fresh_facts(facts, schema)]
+        for fact in fresh_facts:
+            self.assertIn(fact, facts_list)
+        for fact in removed_facts:
+            self.assertNotIn(fact, facts_list)
 
 if __name__ == "__main__":
     unittest.main()
